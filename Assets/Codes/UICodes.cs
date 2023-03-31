@@ -15,7 +15,7 @@ public class UICodes : MonoBehaviour
     public RectTransform noPassBtn, yesPassBtn;
     public Slider wordSlider;
     public Image openingCounterImg, soundBtnImg;
-    public Sprite number3, number2, number1, soundOffImg;
+    public Sprite number3, number2, number1;
     [HideInInspector] public int gameLevel;
     [HideInInspector] public int wordLimit;
     [HideInInspector] public int passAmount;
