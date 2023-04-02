@@ -12,6 +12,7 @@ public class UICodes : MonoBehaviour
     public Text firstInputText, secondInputText, yourTurnTeamNameText;
     public Text mainWordText, bannedWordsText;
     public TextAsset easyMainWordsFile, midMainWordsFile, hardMainWordsFile;
+    public TextAsset mainWordsFile, bannedWords1File, bannedWords2File, bannedWords3File, bannedWords4File, levelWordsFile, wordsExpFile;
     public RectTransform noPassBtn, yesPassBtn;
     public Slider wordSlider;
     public Image openingCounterImg, soundBtnImg;
@@ -22,7 +23,7 @@ public class UICodes : MonoBehaviour
     [HideInInspector] public int currentTeam = 0;
     [HideInInspector] public string firstTeamName, secondTeamName;
     [HideInInspector] public bool isMusicPlaying = true;
-    private List<string> mainWordsList, mainWordsList2, bannedWordsList;
+    private List<string> mainWordsList, bannedWordsList1, bannedWordsList2, bannedWordsList3, bannedWordsList4, levelWordsList, wordsExpList;
     private string text;
 
 
@@ -30,43 +31,94 @@ public class UICodes : MonoBehaviour
     {
         wordLimit = 40;
         mainWordsList = new List<string>();
-        mainWordsList2 = new List<string>();
+        bannedWordsList1 = new List<string>();
+        bannedWordsList2 = new List<string>();
+        bannedWordsList3 = new List<string>();
+        bannedWordsList4 = new List<string>();
+        levelWordsList = new List<string>();
+        wordsExpList = new List<string>();
+       
         getWords(0);
     }
     private void getWords(int gamelevel)
     {
+
+        readTextsToLines(mainWordsFile, mainWordsList);
+        readTextsToLines(bannedWords1File, bannedWordsList1);
+        readTextsToLines(bannedWords2File, bannedWordsList2);
+        readTextsToLines(bannedWords3File, bannedWordsList3);
+        readTextsToLines(bannedWords4File, bannedWordsList4);
+        readTextsToLines(levelWordsFile, levelWordsList);
+        readTextsToLines(wordsExpFile, wordsExpList);
+        
         if (gamelevel == 0)
         {
-            text = easyMainWordsFile.text;
+            for(int i = 0; i< levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "KOLAY" )
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
         }
         else if (gamelevel == 1)
         {
-            text = midMainWordsFile.text;
+            for (int i = 0; i < levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "ORTA")
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
         }
         else if (gamelevel == 2)
         {
-            text = hardMainWordsFile.text;
+            for (int i = 0; i < levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "ZOR")
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
         }
-        else
-        {
-            text = easyMainWordsFile.text + midMainWordsFile.text + hardMainWordsFile.text;
-        }
+
         
+        mainWordText.text = mainWordsList[Random.Range(0, mainWordsList.Count - 1)];
+        bannedWordsText.text = bannedWordsList1[Random.Range(0, mainWordsList.Count - 1)] + 
+            "\n" + bannedWordsList2[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
+            bannedWordsList2[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
+            bannedWordsList3[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
+            bannedWordsList4[Random.Range(0, mainWordsList.Count - 1)];
+
+    }
+    void readTextsToLines(TextAsset textAsset, List<string> wordList)
+    {
+        text = textAsset.text;
         StringReader stringReader = new StringReader(text);
         string line;
         while ((line = stringReader.ReadLine()) != null)
         {
-            mainWordsList.Add(line);          
+            
+            wordList.Add(line);
         }
-               
-        for (int i = 0; i < wordLimit; i++)
-        {
-            int currentNumber = Random.Range(0, mainWordsList.Count - 1);
-            mainWordsList2.Add(mainWordsList[currentNumber]);
-            mainWordsList.RemoveAt(currentNumber);   
-        }
-        mainWordText.text = mainWordsList2[Random.Range(0, mainWordsList2.Count -1)];
-        
     }
     
     #region StartPanel
