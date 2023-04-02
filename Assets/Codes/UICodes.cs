@@ -8,9 +8,9 @@ public class UICodes : MonoBehaviour
 {
     public AudioSource audioSource;
     public AudioClip counterClip, clickClip;
-    public GameObject startPanel, rulesPanel, levelChoosePanel, optionsPanel, openingGamePanel, gamePanel, pauseGamePanel;
+    public GameObject startPanel, rulesPanel, levelChoosePanel, optionsPanel, openingGamePanel, gamePanel, pauseGamePanel, expPanel;
     public Text firstInputText, secondInputText, yourTurnTeamNameText;
-    public Text mainWordText, bannedWordsText;
+    public Text mainWordText, bannedWordsText, expText, expCounterText, gameCounterText;
     public TextAsset easyMainWordsFile, midMainWordsFile, hardMainWordsFile;
     public TextAsset mainWordsFile, bannedWords1File, bannedWords2File, bannedWords3File, bannedWords4File, levelWordsFile, wordsExpFile;
     public RectTransform noPassBtn, yesPassBtn;
@@ -19,107 +19,29 @@ public class UICodes : MonoBehaviour
     public Sprite number3, number2, number1;
     [HideInInspector] public int gameLevel;
     [HideInInspector] public int wordLimit;
-    [HideInInspector] public int passAmount;
+    [HideInInspector] public int gameCounterTime;
+    [HideInInspector] public int passAmount = 0;
     [HideInInspector] public int currentTeam = 0;
     [HideInInspector] public string firstTeamName, secondTeamName;
-    [HideInInspector] public bool isMusicPlaying = true;
     private List<string> mainWordsList, bannedWordsList1, bannedWordsList2, bannedWordsList3, bannedWordsList4, levelWordsList, wordsExpList;
     private string text;
+    private bool isMusicPlaying = true;
+    private bool isExpPanelOpened;
+
 
 
     private void Start()
     {
-        wordLimit = 40;
+        gameCounterTime = 59;
         mainWordsList = new List<string>();
         bannedWordsList1 = new List<string>();
         bannedWordsList2 = new List<string>();
         bannedWordsList3 = new List<string>();
         bannedWordsList4 = new List<string>();
         levelWordsList = new List<string>();
-        wordsExpList = new List<string>();
-       
-        getWords(0);
+        wordsExpList = new List<string>();        
     }
-    private void getWords(int gamelevel)
-    {
-
-        readTextsToLines(mainWordsFile, mainWordsList);
-        readTextsToLines(bannedWords1File, bannedWordsList1);
-        readTextsToLines(bannedWords2File, bannedWordsList2);
-        readTextsToLines(bannedWords3File, bannedWordsList3);
-        readTextsToLines(bannedWords4File, bannedWordsList4);
-        readTextsToLines(levelWordsFile, levelWordsList);
-        readTextsToLines(wordsExpFile, wordsExpList);
-        
-        if (gamelevel == 0)
-        {
-            for(int i = 0; i< levelWordsList.Count; i++)
-            {
-                if (levelWordsList[i] != "KOLAY" )
-                {
-                    levelWordsList.RemoveAt(i);
-                    mainWordsList.RemoveAt(i);
-                    bannedWordsList1.RemoveAt(i);
-                    bannedWordsList2.RemoveAt(i);
-                    bannedWordsList3.RemoveAt(i);
-                    bannedWordsList4.RemoveAt(i);
-                    wordsExpList.RemoveAt(i);
-                }
-            }
-        }
-        else if (gamelevel == 1)
-        {
-            for (int i = 0; i < levelWordsList.Count; i++)
-            {
-                if (levelWordsList[i] != "ORTA")
-                {
-                    levelWordsList.RemoveAt(i);
-                    mainWordsList.RemoveAt(i);
-                    bannedWordsList1.RemoveAt(i);
-                    bannedWordsList2.RemoveAt(i);
-                    bannedWordsList3.RemoveAt(i);
-                    bannedWordsList4.RemoveAt(i);
-                    wordsExpList.RemoveAt(i);
-                }
-            }
-        }
-        else if (gamelevel == 2)
-        {
-            for (int i = 0; i < levelWordsList.Count; i++)
-            {
-                if (levelWordsList[i] != "ZOR")
-                {
-                    levelWordsList.RemoveAt(i);
-                    mainWordsList.RemoveAt(i);
-                    bannedWordsList1.RemoveAt(i);
-                    bannedWordsList2.RemoveAt(i);
-                    bannedWordsList3.RemoveAt(i);
-                    bannedWordsList4.RemoveAt(i);
-                    wordsExpList.RemoveAt(i);
-                }
-            }
-        }
-
-        
-        mainWordText.text = mainWordsList[Random.Range(0, mainWordsList.Count - 1)];
-        bannedWordsText.text = bannedWordsList1[Random.Range(0, mainWordsList.Count - 1)] + 
-            "\n" + bannedWordsList2[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
-            bannedWordsList2[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
-            bannedWordsList3[Random.Range(0, mainWordsList.Count - 1)] + "\n" +
-            bannedWordsList4[Random.Range(0, mainWordsList.Count - 1)];
-
-    }
-    void readTextsToLines(TextAsset textAsset, List<string> wordList)
-    {
-        text = textAsset.text;
-        StringReader stringReader = new StringReader(text);
-        string line;
-        while ((line = stringReader.ReadLine()) != null)
-        {
-            
-            wordList.Add(line);
-        }
-    }
+    
     
     #region StartPanel
     public void CloseAllPanels()
@@ -178,24 +100,28 @@ public class UICodes : MonoBehaviour
         gameLevel = 0;
         CloseAllPanels();
         optionsPanel.SetActive(true);
+        getWords(gameLevel);
     }
     public void MidBtnClicked()
     {
         gameLevel = 1;
         CloseAllPanels();
         optionsPanel.SetActive(true);
+        getWords(gameLevel);
     }
     public void HardBtnClicked()
     {
         gameLevel = 2;
         CloseAllPanels();
         optionsPanel.SetActive(true);
+        getWords(gameLevel);
     }
     public void MixedBtnClicked()
     {
         gameLevel = 3;
         CloseAllPanels();
         optionsPanel.SetActive(true);
+        getWords(gameLevel);
     }
     public void BackFromLevelBtnClicked()
     {
@@ -217,6 +143,7 @@ public class UICodes : MonoBehaviour
         yield return new WaitForSeconds(seconds);
         CloseAllPanels();
         gamePanel.SetActive(true);
+        StartCoroutine(gameCounter());
         
     }
     public void WordSliderValueChanged()
@@ -285,6 +212,95 @@ public class UICodes : MonoBehaviour
 
     #region GamePanel - PauseGamePanel
 
+    private void getWords(int gamelevel)
+    {
+
+        readTextsToLines(mainWordsFile, mainWordsList);
+        readTextsToLines(bannedWords1File, bannedWordsList1);
+        readTextsToLines(bannedWords2File, bannedWordsList2);
+        readTextsToLines(bannedWords3File, bannedWordsList3);
+        readTextsToLines(bannedWords4File, bannedWordsList4);
+        readTextsToLines(levelWordsFile, levelWordsList);
+        readTextsToLines(wordsExpFile, wordsExpList);
+
+        if (gamelevel == 0)
+        {
+            for (int i = 0; i < levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "KOLAY")
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
+        }
+        else if (gamelevel == 1)
+        {
+            for (int i = 0; i < levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "ORTA")
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
+        }
+        else if (gamelevel == 2)
+        {
+            for (int i = 0; i < levelWordsList.Count; i++)
+            {
+                if (levelWordsList[i] != "ZOR")
+                {
+                    levelWordsList.RemoveAt(i);
+                    mainWordsList.RemoveAt(i);
+                    bannedWordsList1.RemoveAt(i);
+                    bannedWordsList2.RemoveAt(i);
+                    bannedWordsList3.RemoveAt(i);
+                    bannedWordsList4.RemoveAt(i);
+                    wordsExpList.RemoveAt(i);
+                }
+            }
+        }
+
+        int randomNumber = Random.Range(0, mainWordsList.Count - 1);
+        mainWordText.text = mainWordsList[randomNumber];
+        bannedWordsText.text = bannedWordsList1[randomNumber] +
+            "\n" + bannedWordsList2[randomNumber] + "\n" +
+            bannedWordsList2[randomNumber] + "\n" +
+            bannedWordsList3[randomNumber] + "\n" +
+            bannedWordsList4[randomNumber];
+        expText.text = wordsExpList[randomNumber];
+
+    }
+    void readTextsToLines(TextAsset textAsset, List<string> wordList)
+    {
+        text = textAsset.text;
+        StringReader stringReader = new StringReader(text);
+        string line;
+        while ((line = stringReader.ReadLine()) != null)
+        {
+
+            wordList.Add(line);
+        }
+    }
+    IEnumerator gameCounter()
+    {
+        for (int i = gameCounterTime; i >0; i--)
+        {
+            gameCounterText.text = "00:" + i;
+            yield return new WaitForSeconds(1f);
+        }
+    }
     public void PauseBtnClicked()
     {
         CloseAllPanels();
@@ -295,6 +311,38 @@ public class UICodes : MonoBehaviour
         pauseGamePanel.SetActive(false);
         gamePanel.SetActive(true);
     }
+    IEnumerator keyBtnClickedNum()
+    {
+        expPanel.SetActive(true);
+        expCounterText.text = "5";
+        yield return new WaitForSeconds(1f);
+        expCounterText.text = "4";
+        yield return new WaitForSeconds(1f);
+        expCounterText.text = "3";
+        yield return new WaitForSeconds(1f);
+        expCounterText.text = "2";
+        yield return new WaitForSeconds(1f);
+        expCounterText.text = "1";
+        yield return new WaitForSeconds(1f);
+        expPanel.SetActive(false);
+
+    }
+    public void KeyBtnClicked()
+    {
+        if (!isExpPanelOpened)
+        {
+            StartCoroutine(keyBtnClickedNum());
+            isExpPanelOpened = true;
+        }
+        else
+        {
+            expPanel.SetActive(false);
+        }
+        
+    }
+    
+
+
     #endregion
 
 }
