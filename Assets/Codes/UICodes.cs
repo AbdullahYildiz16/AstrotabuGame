@@ -15,8 +15,9 @@ public class UICodes : MonoBehaviour
     public TextAsset mainWordsFile, bannedWords1File, bannedWords2File, bannedWords3File, bannedWords4File, levelWordsFile, wordsExpFile;
     public RectTransform noPassBtn, yesPassBtn;
     public Slider wordSlider;
-    public Image openingCounterImg, soundBtnImg;
+    public Image openingCounterImg, soundBtnImg, timeRocket, timeTarget;
     public Sprite number3, number2, number1;
+    [HideInInspector] public int score;
     [HideInInspector] public int gameLevel;
     [HideInInspector] public int wordLimit;
     [HideInInspector] public int gameCounterTime;
@@ -100,28 +101,28 @@ public class UICodes : MonoBehaviour
         gameLevel = 0;
         CloseAllPanels();
         optionsPanel.SetActive(true);
-        getWords(gameLevel);
+        ReadFiles(gameLevel);
     }
     public void MidBtnClicked()
     {
         gameLevel = 1;
         CloseAllPanels();
         optionsPanel.SetActive(true);
-        getWords(gameLevel);
+        ReadFiles(gameLevel);
     }
     public void HardBtnClicked()
     {
         gameLevel = 2;
         CloseAllPanels();
         optionsPanel.SetActive(true);
-        getWords(gameLevel);
+        ReadFiles(gameLevel);
     }
     public void MixedBtnClicked()
     {
         gameLevel = 3;
         CloseAllPanels();
         optionsPanel.SetActive(true);
-        getWords(gameLevel);
+        ReadFiles(gameLevel);
     }
     public void BackFromLevelBtnClicked()
     {
@@ -212,7 +213,7 @@ public class UICodes : MonoBehaviour
 
     #region GamePanel - PauseGamePanel
 
-    private void getWords(int gamelevel)
+    private void ReadFiles(int gamelevel)
     {
 
         readTextsToLines(mainWordsFile, mainWordsList);
@@ -271,16 +272,17 @@ public class UICodes : MonoBehaviour
                 }
             }
         }
-
+        GetNewWord();
+    }
+    private void GetNewWord()
+    {
         int randomNumber = Random.Range(0, mainWordsList.Count - 1);
         mainWordText.text = mainWordsList[randomNumber];
         bannedWordsText.text = bannedWordsList1[randomNumber] +
             "\n" + bannedWordsList2[randomNumber] + "\n" +
-            bannedWordsList2[randomNumber] + "\n" +
             bannedWordsList3[randomNumber] + "\n" +
             bannedWordsList4[randomNumber];
         expText.text = wordsExpList[randomNumber];
-
     }
     void readTextsToLines(TextAsset textAsset, List<string> wordList)
     {
@@ -295,9 +297,21 @@ public class UICodes : MonoBehaviour
     }
     IEnumerator gameCounter()
     {
-        for (int i = gameCounterTime; i >0; i--)
+        Vector2 distance = (timeTarget.rectTransform.anchoredPosition - timeRocket.rectTransform.anchoredPosition)
+            - (Vector2.up * timeTarget.rectTransform.rect.height / 2 + Vector2.up * timeRocket.rectTransform.rect.height / 2);
+        Debug.Log(timeTarget.rectTransform.position.y - timeRocket.rectTransform.position.y);
+        
+        for (int i = gameCounterTime; i >=0; i--)
         {
-            gameCounterText.text = "00:" + i;
+            if (i < 10)
+            {
+                gameCounterText.text = "00:0" + i;
+            }
+            else
+            {
+                gameCounterText.text = "00:" + i;
+            }           
+            timeRocket.rectTransform.anchoredPosition += (distance / (gameCounterTime -1));
             yield return new WaitForSeconds(1f);
         }
     }
@@ -339,6 +353,24 @@ public class UICodes : MonoBehaviour
             expPanel.SetActive(false);
         }
         
+    }
+    public void PassBtnClicked()
+    {
+        if (passAmount > 0)
+        {
+            GetNewWord();
+            passAmount--;
+        }
+    }
+    public void TrueBtnClicked()
+    {
+        GetNewWord();
+        score++;
+    }
+    public void FalseBtnClicked()
+    {
+        GetNewWord();
+        score--;
     }
     
 
