@@ -6,41 +6,45 @@ using System.IO;
 
 public class UICodes : MonoBehaviour
 {
+    #region Variables
     public AudioSource audioSource;
     public AudioClip counterClip, clickClip;
-    public GameObject startPanel, rulesPanel, levelChoosePanel, optionsPanel, openingGamePanel, gamePanel, pauseGamePanel, expPanel;
+    public GameObject startPanel, rulesPanel, levelChoosePanel, optionsPanel, openingGamePanel, gamePanel, pauseGamePanel, expPanel, roundFinishedPanel, gameFinishedPanel;
     public Text firstInputText, secondInputText, yourTurnTeamNameText;
     public Text mainWordText, bannedWordsText, expText, expCounterText, gameCounterText;
+    public Text roundScoreText,firstTeamNameText, secondTeamNameText, firstRoundScoreText, afterTeamText;
     public TextAsset easyMainWordsFile, midMainWordsFile, hardMainWordsFile;
     public TextAsset mainWordsFile, bannedWords1File, bannedWords2File, bannedWords3File, bannedWords4File, levelWordsFile, wordsExpFile;
     public RectTransform noPassBtn, yesPassBtn;
     public Slider wordSlider;
     public Image openingCounterImg, soundBtnImg, timeRocket, timeTarget;
     public Sprite number3, number2, number1;
-    [HideInInspector] public int score;
+    public int firstTeamScore, secondTeamScore;
     [HideInInspector] public int gameLevel;
     [HideInInspector] public int wordLimit;
     [HideInInspector] public int gameCounterTime;
     [HideInInspector] public int passAmount = 0;
-    [HideInInspector] public int currentTeam = 0;
+    public int currentTeam = 1;
     [HideInInspector] public string firstTeamName, secondTeamName;
     private List<string> mainWordsList, bannedWordsList1, bannedWordsList2, bannedWordsList3, bannedWordsList4, levelWordsList, wordsExpList;
     private string text;
     private bool isMusicPlaying = true;
     private bool isExpPanelOpened;
-
+    #endregion
 
 
     private void Start()
     {
-        gameCounterTime = 59;
+        currentTeam = 1;
+        gameCounterTime = 10;
         mainWordsList = new List<string>();
         bannedWordsList1 = new List<string>();
         bannedWordsList2 = new List<string>();
         bannedWordsList3 = new List<string>();
         bannedWordsList4 = new List<string>();
         levelWordsList = new List<string>();
-        wordsExpList = new List<string>();        
+        wordsExpList = new List<string>();
+        
     }
     
     
@@ -142,10 +146,14 @@ public class UICodes : MonoBehaviour
         yield return new WaitForSeconds(seconds);
         openingCounterImg.sprite = number1;
         yield return new WaitForSeconds(seconds);
-        CloseAllPanels();
-        gamePanel.SetActive(true);
+        OpenGamePanel();
         StartCoroutine(gameCounter());
         
+    }
+    public void OpenGamePanel()
+    {
+        CloseAllPanels();
+        gamePanel.SetActive(true);
     }
     public void WordSliderValueChanged()
     {
@@ -174,7 +182,7 @@ public class UICodes : MonoBehaviour
     {
         if (firstInputText.text.Length != 0 && secondInputText.text.Length != 0)
         {
-            currentTeam = 0;
+            currentTeam = 1;
             firstTeamName = firstInputText.text;
             secondTeamName = secondInputText.text;
             if (firstTeamName.Length >= 11)
@@ -299,7 +307,7 @@ public class UICodes : MonoBehaviour
     {
         Vector2 distance = (timeTarget.rectTransform.anchoredPosition - timeRocket.rectTransform.anchoredPosition)
             - (Vector2.up * timeTarget.rectTransform.rect.height / 2 + Vector2.up * timeRocket.rectTransform.rect.height / 2);
-        Debug.Log(timeTarget.rectTransform.position.y - timeRocket.rectTransform.position.y);
+        
         
         for (int i = gameCounterTime; i >=0; i--)
         {
@@ -314,6 +322,22 @@ public class UICodes : MonoBehaviour
             timeRocket.rectTransform.anchoredPosition += (distance / (gameCounterTime -1));
             yield return new WaitForSeconds(1f);
         }
+        CloseAllPanels();
+        firstTeamNameText.text = firstTeamName;
+        secondTeamNameText.text = secondTeamName;
+        afterTeamText.text = secondTeamName;
+        if (currentTeam == 2)
+        {          
+            gameFinishedPanel.SetActive(true);
+        }
+        else
+        {          
+            roundScoreText.text = "" + firstTeamScore;
+            firstRoundScoreText.text = "" + firstTeamScore;
+            roundFinishedPanel.SetActive(true);
+            currentTeam = 2;
+        }
+        
     }
     public void PauseBtnClicked()
     {
@@ -364,16 +388,28 @@ public class UICodes : MonoBehaviour
     }
     public void TrueBtnClicked()
     {
-        GetNewWord();
-        score++;
+        if (currentTeam == 1)
+        {
+            firstTeamScore++;
+        }
+        else
+        {
+            secondTeamScore++;
+        }
+        GetNewWord();     
     }
     public void FalseBtnClicked()
     {
-        GetNewWord();
-        score--;
+        if (currentTeam == 1)
+        {
+            firstTeamScore--;
+        }
+        else
+        {
+            secondTeamScore--;
+        }
+        GetNewWord();     
     }
-    
-
 
     #endregion
 
