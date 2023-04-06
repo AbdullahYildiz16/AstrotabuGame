@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class UICodes : MonoBehaviour
 {
@@ -12,7 +13,8 @@ public class UICodes : MonoBehaviour
     public GameObject startPanel, rulesPanel, levelChoosePanel, optionsPanel, openingGamePanel, gamePanel, pauseGamePanel, expPanel, roundFinishedPanel, gameFinishedPanel;
     public Text firstInputText, secondInputText, yourTurnTeamNameText;
     public Text mainWordText, bannedWordsText, expText, expCounterText, gameCounterText;
-    public Text roundScoreText,firstTeamNameText, secondTeamNameText, firstRoundScoreText, afterTeamText;
+    public Text roundScoreText,firstTeamNameText, secondTeamNameText, firstRoundScoreText, afterTeamText,
+        firstTeamFinishedText, secondTeamFinishedText, firstTeamFinishedScoreText, secondTeamFinishedScoreText, winnerText1, winnerText2;
     public TextAsset easyMainWordsFile, midMainWordsFile, hardMainWordsFile;
     public TextAsset mainWordsFile, bannedWords1File, bannedWords2File, bannedWords3File, bannedWords4File, levelWordsFile, wordsExpFile;
     public RectTransform noPassBtn, yesPassBtn;
@@ -30,6 +32,7 @@ public class UICodes : MonoBehaviour
     private string text;
     private bool isMusicPlaying = true;
     private bool isExpPanelOpened;
+    private Vector3 rocketStarterPos;
     #endregion
 
 
@@ -44,7 +47,8 @@ public class UICodes : MonoBehaviour
         bannedWordsList4 = new List<string>();
         levelWordsList = new List<string>();
         wordsExpList = new List<string>();
-        
+        SceneManager sceneManager = new SceneManager();
+        rocketStarterPos = timeRocket.rectTransform.anchoredPosition;
     }
     
     
@@ -58,6 +62,8 @@ public class UICodes : MonoBehaviour
         openingGamePanel.SetActive(false);
         gamePanel.SetActive(false);
         pauseGamePanel.SetActive(false);
+        roundFinishedPanel.SetActive(false);
+        gameFinishedPanel.SetActive(false);
     }
 
     public void StartBtnClicked()
@@ -147,13 +153,14 @@ public class UICodes : MonoBehaviour
         openingCounterImg.sprite = number1;
         yield return new WaitForSeconds(seconds);
         OpenGamePanel();
-        StartCoroutine(gameCounter());
+        
         
     }
     public void OpenGamePanel()
     {
         CloseAllPanels();
         gamePanel.SetActive(true);
+        StartCoroutine(gameCounter());
     }
     public void WordSliderValueChanged()
     {
@@ -219,7 +226,7 @@ public class UICodes : MonoBehaviour
     }
     #endregion
 
-    #region GamePanel - PauseGamePanel
+    #region GamePanel - PauseGamePanel - RoundFinishedPanel
 
     private void ReadFiles(int gamelevel)
     {
@@ -305,6 +312,7 @@ public class UICodes : MonoBehaviour
     }
     IEnumerator gameCounter()
     {
+        timeRocket.rectTransform.anchoredPosition = rocketStarterPos;
         Vector2 distance = (timeTarget.rectTransform.anchoredPosition - timeRocket.rectTransform.anchoredPosition)
             - (Vector2.up * timeTarget.rectTransform.rect.height / 2 + Vector2.up * timeRocket.rectTransform.rect.height / 2);
         
@@ -319,15 +327,17 @@ public class UICodes : MonoBehaviour
             {
                 gameCounterText.text = "00:" + i;
             }           
-            timeRocket.rectTransform.anchoredPosition += (distance / (gameCounterTime -1));
+            timeRocket.rectTransform.anchoredPosition += (distance / (gameCounterTime));
             yield return new WaitForSeconds(1f);
         }
         CloseAllPanels();
         firstTeamNameText.text = firstTeamName;
         secondTeamNameText.text = secondTeamName;
         afterTeamText.text = secondTeamName;
+        
         if (currentTeam == 2)
-        {          
+        {
+            OnGameFinished();
             gameFinishedPanel.SetActive(true);
         }
         else
@@ -413,4 +423,31 @@ public class UICodes : MonoBehaviour
 
     #endregion
 
+    #region GameFinishedPanel
+
+    void OnGameFinished()
+    {
+        firstTeamFinishedText.text = firstTeamName;
+        secondTeamFinishedText.text = secondTeamName;
+        firstTeamFinishedScoreText.text = "" + firstTeamScore;
+        secondTeamFinishedScoreText.text = "" + secondTeamScore;
+        if (firstTeamScore > secondTeamScore)
+        {
+            winnerText1.text = "Kazanan!";
+        }
+        else if (secondTeamScore > firstTeamScore)
+        {
+            winnerText2.text = "Kazanan!";
+        }
+        else
+        {
+            winnerText1.text = "Berabere!";
+            winnerText2.text = "Berabere!";
+        }
+    }
+    public void PlayAgainClicked()
+    {
+        SceneManager.LoadScene(0);
+    }
+    #endregion
 }
