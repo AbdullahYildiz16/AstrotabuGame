@@ -20,11 +20,10 @@ public class UICodes : MonoBehaviour
     public RectTransform noPassBtn, yesPassBtn;
     public Slider wordSlider;
     public Image openingCounterImg, soundBtnImg, timeRocket, timeTarget;
-    public Sprite number3, number2, number1;
+    public Sprite number3, number2, number1, soundOn, soundOff;
     public int firstTeamScore, secondTeamScore;
     [HideInInspector] public int gameLevel;
-    [HideInInspector] public int wordLimit;
-    [HideInInspector] public int gameCounterTime;
+    [HideInInspector] public int timeLimit;
     [HideInInspector] public int passAmount = 0;
     public int currentTeam = 1;
     [HideInInspector] public string firstTeamName, secondTeamName;
@@ -32,6 +31,7 @@ public class UICodes : MonoBehaviour
     private string text;
     private bool isMusicPlaying = true;
     private bool isExpPanelOpened;
+    bool isGamePaused = false;
     private Vector3 rocketStarterPos;
     #endregion
 
@@ -39,7 +39,7 @@ public class UICodes : MonoBehaviour
     private void Start()
     {
         currentTeam = 1;
-        gameCounterTime = 10;
+        timeLimit = 40;
         mainWordsList = new List<string>();
         bannedWordsList1 = new List<string>();
         bannedWordsList2 = new List<string>();
@@ -82,17 +82,17 @@ public class UICodes : MonoBehaviour
         {
             audioSource.Stop();
             isMusicPlaying = false;
+            soundBtnImg.sprite = soundOff;
+            
         }
         else
         {
             audioSource.Play();
             isMusicPlaying = true;
+            soundBtnImg.sprite = soundOn;
         }
     }
-    public void ShareBtnClicked()
-    {
-
-    }
+    
 
     #endregion
 
@@ -159,6 +159,7 @@ public class UICodes : MonoBehaviour
     public void OpenGamePanel()
     {
         CloseAllPanels();
+        GetNewWord();
         gamePanel.SetActive(true);
         StartCoroutine(gameCounter());
     }
@@ -169,17 +170,17 @@ public class UICodes : MonoBehaviour
             if (wordSlider.value >= 0.75f)
             {
                 wordSlider.value = 1f;
-                wordLimit = 60;
+                timeLimit = 60;
             }
             else if (wordSlider.value <= 0.25f)
             {
                 wordSlider.value = 0f;
-                wordLimit = 40;
+                timeLimit = 40;
             }
             else
             {
                 wordSlider.value = 0.5f;
-                wordLimit = 50;
+                timeLimit = 50;
             }
 
         }
@@ -317,8 +318,12 @@ public class UICodes : MonoBehaviour
             - (Vector2.up * timeTarget.rectTransform.rect.height / 2 + Vector2.up * timeRocket.rectTransform.rect.height / 2);
         
         
-        for (int i = gameCounterTime; i >=0; i--)
+        for (int i = timeLimit; i >=0; i--)
         {
+            if (isGamePaused)
+            {
+                i++;
+            }
             if (i < 10)
             {
                 gameCounterText.text = "00:0" + i;
@@ -327,7 +332,7 @@ public class UICodes : MonoBehaviour
             {
                 gameCounterText.text = "00:" + i;
             }           
-            timeRocket.rectTransform.anchoredPosition += (distance / (gameCounterTime));
+            timeRocket.rectTransform.anchoredPosition += (distance / (timeLimit));
             yield return new WaitForSeconds(1f);
         }
         CloseAllPanels();
@@ -352,11 +357,13 @@ public class UICodes : MonoBehaviour
     public void PauseBtnClicked()
     {
         CloseAllPanels();
+        isGamePaused = true;
         pauseGamePanel.SetActive(true);
     }
     public void ReturnCurrentGameBtnClicked()
     {
         pauseGamePanel.SetActive(false);
+        isGamePaused = false;
         gamePanel.SetActive(true);
     }
     IEnumerator keyBtnClickedNum()
@@ -444,6 +451,7 @@ public class UICodes : MonoBehaviour
             winnerText1.text = "Berabere!";
             winnerText2.text = "Berabere!";
         }
+        GetNewWord();
     }
     public void PlayAgainClicked()
     {
